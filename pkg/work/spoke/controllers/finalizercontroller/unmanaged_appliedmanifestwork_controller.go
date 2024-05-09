@@ -91,6 +91,11 @@ func (m *unmanagedAppliedWorkController) sync(ctx context.Context, controllerCon
 		return err
 	}
 
+	// Do NOT evict the AppliedManifestWorks if the eviction grace period is longer than 100 years
+	if m.evictionGracePeriod >= 100*365*24*time.Hour {
+		return m.stopToEvictAppliedManifestWork(ctx, appliedManifestWork)
+	}
+
 	_, err = m.manifestWorkLister.Get(appliedManifestWork.Spec.ManifestWorkName)
 	if errors.IsNotFound(err) {
 		// evict the current appliedmanifestwork when its relating manifestwork is missing on the hub
